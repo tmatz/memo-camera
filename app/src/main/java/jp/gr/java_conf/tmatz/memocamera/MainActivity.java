@@ -36,14 +36,19 @@ public class MainActivity extends Activity
 					MainActivity.this.takePhoto();
 				}
 			});
-			
-		setPhotoImage();
+            
+        mImageButton.addOnLayoutChangeListener(new OnLayoutChangeListener(){
+
+                @Override
+                public void onLayoutChange(View p1, int p2, int p3, int p4, int p5, int p6, int p7, int p8, int p9)
+                {
+                    setPhotoImage();
+                }
+            });
     }
 
 	@Override
-	protected void onResume()
-	{
-		// TODO: Implement this method
+	protected void onResume() {
 		super.onResume();
 //		if (Build.VERSION.SDK_INT >= 19) {
 //            Window window = getWindow();
