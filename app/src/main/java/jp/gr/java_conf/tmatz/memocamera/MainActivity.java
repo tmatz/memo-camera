@@ -36,6 +36,8 @@ public class MainActivity extends Activity
 					MainActivity.this.takePhoto();
 				}
 			});
+			
+		setPhotoImage();
     }
 
 	@Override
@@ -43,14 +45,14 @@ public class MainActivity extends Activity
 	{
 		// TODO: Implement this method
 		super.onResume();
-		if (Build.VERSION.SDK_INT >= 19) {
-            Window window = getWindow();
-            View view = window.getDecorView();
-            view.setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY |
-				View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
-				View.SYSTEM_UI_FLAG_FULLSCREEN);
-        }
+//		if (Build.VERSION.SDK_INT >= 19) {
+//            Window window = getWindow();
+//            View view = window.getDecorView();
+//            view.setSystemUiVisibility(
+//                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY |
+//				View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
+//				View.SYSTEM_UI_FLAG_FULLSCREEN);
+//        }
 		setPhotoImage();
 	}
 	
@@ -82,15 +84,16 @@ public class MainActivity extends Activity
 			return;
 		}
 		try {
-		Bitmap bmp = BitmapFactory.decodeFile(file.getAbsolutePath());
-		if (bmp.getWidth() > bmp.getHeight()) {
-			Matrix matrix = new Matrix();				matrix.postRotate(90);
-			bmp = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true);
-		}
-		int width = mImageButton.getWidth();
-		int height = mImageButton.getHeight();
-		Bitmap scaledBitmap = Bitmap.createScaledBitmap(bmp, width, height, true);
-		mImageButton.setImageBitmap(scaledBitmap);
+			Bitmap bmp = BitmapFactory.decodeFile(file.getAbsolutePath());
+			if (bmp.getWidth() > bmp.getHeight()) {
+				Matrix matrix = new Matrix();
+				matrix.postRotate(90);
+				bmp = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true);
+			}
+			int width = mImageButton.getWidth();
+			int height = mImageButton.getHeight();
+			Bitmap scaledBitmap = Bitmap.createScaledBitmap(bmp, width, height, true);
+			mImageButton.setImageBitmap(scaledBitmap);
 		} catch (Exception ex) {
 			mImageButton.setImageBitmap(null);
 		}
