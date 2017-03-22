@@ -24,6 +24,7 @@ public class MainActivity extends Activity
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
+        Log.i(TAG, "onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 		
@@ -49,6 +50,7 @@ public class MainActivity extends Activity
 
 	@Override
 	protected void onResume() {
+        Log.i(TAG, "onResume");
 		super.onResume();
 //		if (Build.VERSION.SDK_INT >= 19) {
 //            Window window = getWindow();
@@ -60,7 +62,19 @@ public class MainActivity extends Activity
 //        }
 		setPhotoImage();
 	}
-	
+
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event)
+    {
+        switch (keyCode) {
+            case KeyEvent.KEYCODE_BACK:
+                deletePhoto();
+                finish();
+                break;
+        }
+        return super.onKeyUp(keyCode, event);
+    }
+
 	private File getImageFile() {
 		File imagePath = new File(getCacheDir(), "images");
 		if (!imagePath.exists()) {
@@ -104,8 +118,17 @@ public class MainActivity extends Activity
 		}
 	}
 
+    private void deletePhoto()
+    {
+        File file = getImageFile();
+        if (file.exists()) {
+            file.delete();
+        }
+    }
+    
 	@Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.i(TAG, "onActivityResult " + requestCode + " " + resultCode);
         if (requestCode == RESULT_CAMERA && resultCode == RESULT_OK) {
 			setPhotoImage();
         }
