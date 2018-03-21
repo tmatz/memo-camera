@@ -9,17 +9,19 @@ import android.provider.*;
 import android.support.v4.content.*;
 import android.util.*;
 import android.view.*;
-import android.view.View.*;
 import android.widget.*;
 import java.io.*;
 
 public class MainActivity extends Activity 
 {
     private static final String TAG = "MainActivity";
+    private static final String FILE_PROVIDER_AUTHORITY = "jp.gr.java_conf.tmatz.memocamera.fileprovider";
 
     private static final int RESULT_CAMERA = 0;
 
-    private ImageButton mImageButton;
+    private ImageView mImageView;
+    private ScaleGestureDetector mScaleGestureDetector;
+    private GestureDetector mGestureDetector;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -28,24 +30,65 @@ public class MainActivity extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
-        mImageButton = (ImageButton)findViewById(R.id.mainImageButton1);
-        mImageButton.setOnClickListener(new OnClickListener()
+        mImageView = (ImageView)findViewById(R.id.mainImageButton1);
+        mImageView.setImageMatrix(new Matrix());
+
+        mScaleGestureDetector = new ScaleGestureDetector(this, new ScaleGestureDetector.SimpleOnScaleGestureListener()
             {
+                float mPreviousScale;
+
                 @Override
-                public void onClick(View p1)
+                public boolean onScale(ScaleGestureDetector detector)
                 {
-                    MainActivity.this.takePhoto();
+                    float scale = detector.getScaleFactor() / mPreviousScale;
+                    mPreviousScale = detector.getScaleFactor();
+
+                    mImageView.getImageMatrix().postScale(scale, scale, detector.getFocusX(), detector.getFocusY());
+                    mImageView.invalidate();
+
+                    return super.onScale(detector);
+                }
+
+                @Override
+                public boolean onScaleBegin(ScaleGestureDetector detector)
+                {
+                    mPreviousScale = 1.0f;
+                    return super.onScaleBegin(detector);
                 }
             });
 
-        mImageButton.addOnLayoutChangeListener(new OnLayoutChangeListener()
+        mGestureDetector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener()
             {
                 @Override
-                public void onLayoutChange(View p1, int p2, int p3, int p4, int p5, int p6, int p7, int p8, int p9)
+                public boolean onDoubleTap(MotionEvent ev)
                 {
-                    setPhotoImage();
+                    takePhoto();
+                    return super.onDoubleTap(ev);
+                }
+
+                @Override
+                public boolean onScroll(android.view.MotionEvent e1, android.view.MotionEvent e2, float distanceX, float distanceY)
+                {
+                    mImageView.getImageMatrix().postTranslate(-distanceX, -distanceY);
+                    mImageView.invalidate();
+                    return super.onScroll(e1, e2, distanceX, distanceY);
                 }
             });
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event)
+    {
+        mScaleGestureDetector.onTouchEvent(event);
+        mGestureDetector.onTouchEvent(event);
+        return super.onTouchEvent(event);
+    }
+
+    @Override
+    public boolean onGenericMotionEvent(MotionEvent event)
+    {
+        mGestureDetector.onGenericMotionEvent(event);
+        return super.onGenericMotionEvent(event);
     }
 
     @Override
@@ -93,11 +136,7 @@ public class MainActivity extends Activity
     {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         File newFile = getImageFile();
-//        if (newFile.exists())
-//        {
-//            newFile.delete();
-//        }
-        Uri contentUri = FileProvider.getUriForFile(this, "jp.gr.java_conf.tmatz.memocamera.fileprovider", newFile);
+        Uri contentUri = FileProvider.getUriForFile(this, FILE_PROVIDER_AUTHORITY, newFile);
         intent.putExtra(MediaStore.EXTRA_OUTPUT, contentUri);
         intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
         startActivityForResult(intent, RESULT_CAMERA);
@@ -108,26 +147,17 @@ public class MainActivity extends Activity
         File file = getImageFile();
         if (!file.exists())
         {
-            mImageButton.setImageBitmap(null);
+            mImageView.setImageURI(null);
             return;
         }
         try
         {
-            Bitmap bmp = BitmapFactory.decodeFile(file.getAbsolutePath());
-            if (bmp.getWidth() > bmp.getHeight())
-            {
-                Matrix matrix = new Matrix();
-                matrix.postRotate(90);
-                bmp = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true);
-            }
-            int width = mImageButton.getWidth();
-            int height = mImageButton.getHeight();
-            Bitmap scaledBitmap = Bitmap.createScaledBitmap(bmp, width, height, true);
-            mImageButton.setImageBitmap(scaledBitmap);
+            Uri imageUri = FileProvider.getUriForFile(this, FILE_PROVIDER_AUTHORITY, getImageFile());
+            mImageView.setImageURI(imageUri);
         }
         catch (Exception ex)
         {
-            mImageButton.setImageBitmap(null);
+            mImageView.setImageURI(null);
         }
     }
 
