@@ -12,7 +12,7 @@ import android.view.*;
 import android.widget.*;
 import java.io.*;
 
-public class MainActivity extends Activity 
+public class MainActivity extends Activity
 {
     private static final String TAG = "MainActivity";
     private static final String FILE_PROVIDER_AUTHORITY = "jp.gr.java_conf.tmatz.memocamera.fileprovider";
@@ -108,14 +108,37 @@ public class MainActivity extends Activity
         setPhotoImage();
     }
 
+    private final Handler mBackHandler = new Handler();
+
+    private final Runnable mBackButtonRunnable = new Runnable()
+    {
+        public void run()
+        {
+            deletePhoto();
+            Toast.makeText(MainActivity.this, "Photo deleted", Toast.LENGTH_SHORT).show();
+            finish();
+        }
+    };
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event)
+    {
+        switch (keyCode)
+        {
+            case KeyEvent.KEYCODE_BACK:
+                mBackHandler.postDelayed(mBackButtonRunnable, ViewConfiguration.getLongPressTimeout());
+                break;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event)
     {
         switch (keyCode)
         {
             case KeyEvent.KEYCODE_BACK:
-                deletePhoto();
-                finish();
+                mBackHandler.removeCallbacks(mBackButtonRunnable);
                 break;
         }
         return super.onKeyUp(keyCode, event);
